@@ -2,6 +2,8 @@
 
 链接：https://www.digitalocean.com/community/tutorials/how-to-write-a-simple-shell-script-on-a-vps
 
+本文是[如何在 VPS 上写简单的 Shell 脚本](..)系列的一部分。
+
 ---
 
 ### 介绍
@@ -112,7 +114,40 @@ chmod +x ~/bin/filebackup
 nano ~/bin/filebackup
 ```
 
-记住，用 `#` 开头的内容是被注释的，它们不会对你的程序产生影响，有个例外就是第一行的注释是用来标明。
+记住，用 `#` 开头的内容是被注释的，它们不会对你的程序产生影响，不过当后面跟着一个感叹号，就会变成一个“shebang”（认领），就像之前提到的 `#!/bin/sh` 一样。
+
+下面是这个脚本的内容：
+
+```sh
+#!/bin/sh
+#Backup script
+#Description: makes a copy of any given file at the backup folder
+#Author: Your Name
+#Date: 8/10/2013
+
+#备份目录；你要有这个变量对应的目录的写的权限
+BACKUPFOLDER=~/backup
+
+#脚本必须保证目录存在
+mkdir -p $BACKUPFOLDER
+
+#所给文件将被复制到备份目录
+cp -a $@ $BACKUPFOLDER
+```
+
+现在我们来看看这段代码，前面几行是些注释，之后我们把要备份的目录赋值给变量 BACKUPFOLDER，然后执行 `mkdir -p $BACKUPFOLDER`，如果目录不存在会创建目录，存在也不会报错。接下来的 `cp` 命令，我们把传进来的所有参数 `$@` 传递给 `cp`，这些参数都是要备份的文件，最后把 `$BACKUPFOLDER` 做为目标目录传过去。
+
+你可以在系统的任何目录下测试这个脚本：
+
+```sh
+filebackup file1 file2
+```
+
+你可以按你想要的把多个文件名传过去，它们都会被得到到备份目录下的。
+
+### 总结
+
+Shell 脚本在 Linux 系统上随处可见，因为它方便实用。本教程只涵盖了基础知识，还有很多东西要学习。
 
 
 (未完)
