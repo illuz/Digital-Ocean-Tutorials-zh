@@ -75,6 +75,7 @@ def preprocess_article_and_series():
                 if finished:
                     info['done'] = info['done'] + 1
                 container.append({'name': name, 'path': './' + path + '/' + file_name, 'origin_link': origin_link, 'done': finished})
+        container.sort(key = lambda k: k['name'])
     _preprocess(SERIES_PATH, series, series_info)
     _preprocess(ARTICLES_PATH, articles, articles_info)
     # print(series)
