@@ -1,6 +1,6 @@
 # Shell Script 介绍
 
-链接: https://www.digitalocean.com/community/tutorial_series/an-introduction-to-shell-scripting
+原文:[An Introduction to Shell Scripting](https://www.digitalocean.com/community/tutorial_series/an-introduction-to-shell-scripting)
 
 ---
 
