@@ -33,7 +33,7 @@ Digital Ocean Tutorials 上一些文章的翻译，主要为运维相关。https
 
 这里共有 {total_series} 个系列，已经翻译了 {done_series} 个，还有 {doing_series} 个系列在翻译中。
 
-*注：很多文章是单篇的，没有包含在系列文章中*
+*注：很多文章是单篇的，没有包含在系列文章中，所有的翻译文章见文章列表。*
 
 {series_table}
 
