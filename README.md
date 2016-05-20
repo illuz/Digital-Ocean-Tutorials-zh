@@ -13,7 +13,10 @@ Digital Ocean Tutorials 上一些文章的翻译，主要为运维相关。https
 
 | 译文 | 原文 | 状态 |
 |------|------|------|
-| [如何在 VPS 上写简单的 Shell 脚本(1)](././articles/如何在 VPS 上写简单的 Shell 脚本(1).md) | [How To Write a Simple Shell Script on a VPS](https://www.digitalocean.com/community/tutorials/how-to-write-a-simple-shell-script-on-a-vps) | 翻译完成 || [如何在 VPS 上写简单的 Shell 脚本(2)](././articles/如何在 VPS 上写简单的 Shell 脚本(2).md) | [How To Write a Simple Shell Script on a VPS (Part 2)](https://www.digitalocean.com/community/tutorials/how-to-write-a-simple-shell-script-on-a-vps-part-2) | 翻译中 || [如何在 VPS 上写简单的 Shell 脚本(3)](././articles/如何在 VPS 上写简单的 Shell 脚本(3).md) | [How To Write a Simple Shell Script on a VPS (Part 3)](https://www.digitalocean.com/community/tutorials/how-to-write-a-simple-shell-script-on-a-vps-part-3) | 翻译中 |
+| [如何在 VPS 上写简单的 Shell 脚本(1)](././articles/如何在 VPS 上写简单的 Shell 脚本(1).md) | [How To Write a Simple Shell Script on a VPS](https://www.digitalocean.com/community/tutorials/how-to-write-a-simple-shell-script-on-a-vps) | 翻译完成 |
+| [如何在 VPS 上写简单的 Shell 脚本(2)](././articles/如何在 VPS 上写简单的 Shell 脚本(2).md) | [How To Write a Simple Shell Script on a VPS (Part 2)](https://www.digitalocean.com/community/tutorials/how-to-write-a-simple-shell-script-on-a-vps-part-2) | 翻译中 |
+| [如何在 VPS 上写简单的 Shell 脚本(3)](././articles/如何在 VPS 上写简单的 Shell 脚本(3).md) | [How To Write a Simple Shell Script on a VPS (Part 3)](https://www.digitalocean.com/community/tutorials/how-to-write-a-simple-shell-script-on-a-vps-part-3) | 翻译中 |
+
 
 ### 系列
 
@@ -24,6 +27,7 @@ Digital Ocean Tutorials 上一些文章的翻译，主要为运维相关。https
 | 系列名 | 原链接 | 状态 |
 |------|------|------|
 | [Shell Script 介绍](././series/Shell Script 介绍.md) | [An Introduction to Shell Scripting](https://www.digitalocean.com/community/tutorial_series/an-introduction-to-shell-scripting) | 翻译中 |
+
 
 ---
 
