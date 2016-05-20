@@ -83,13 +83,13 @@ def preprocess_article_and_series():
 def get_articles_table():
     table = '| 译文 | 原文 | 状态 |\n|------|------|------|\n'
     for item in articles:
-        table += '| [{}]({}) | {} | {} |'.format(item.get('name', 'FAILED'), item.get('path', 'FAILED'), item.get('origin_link', 'FAILED'), '翻译完成' if item.get('done', False) else '翻译中')
+        table += '| [{}]({}) | {} | {} |\n'.format(item.get('name', 'FAILED'), item.get('path', 'FAILED'), item.get('origin_link', 'FAILED'), '翻译完成' if item.get('done', False) else '翻译中')
     return table
 
 def get_series_table():
     table = '| 系列名 | 原链接 | 状态 |\n|------|------|------|\n'
     for item in series:
-        table += '| [{}]({}) | {} | {} |'.format(item.get('name', 'FAILED'), item.get('path', 'FAILED'), item.get('origin_link', 'FAILED'), '翻译完成' if item.get('done', False) else '翻译中')
+        table += '| [{}]({}) | {} | {} |\n'.format(item.get('name', 'FAILED'), item.get('path', 'FAILED'), item.get('origin_link', 'FAILED'), '翻译完成' if item.get('done', False) else '翻译中')
     return table
 
 def print_readme():
