@@ -2,7 +2,7 @@
 
 链接：https://www.digitalocean.com/community/tutorials/how-to-write-a-simple-shell-script-on-a-vps-part-3
 
-本文是[Shell Script 介绍](..)系列的一部分。
+本文是[Shell Script 介绍](../series/Shell Script 介绍.md)系列的一部分。
 
 ---
 
