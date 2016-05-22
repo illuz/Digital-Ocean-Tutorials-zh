@@ -111,6 +111,91 @@ sudo rm /swapfile
 
 更快的方法是用 `fallocate` 工具，它能即时产生任意大小的预分配文件，而不用去写那些没必要的内容(0)。
 
+我们来创建一个 4G 大小的文件：
+
+```sh
+sudo fallocate -l 4G /swapfile
+```
+
+执行后提示符立即就返回了，我们可以来验证一下创建的文件的大小：
+
+```sh
+ls -lh /swapfile
+# -rw-r--r-- 1 root root 4.0G Apr 28 17:19 /swapfile
+```
+
+如你所见，我们的文件大小的正确的。
+
+### 启用交换文件
+
+现在，文件已经创建好了，不过系统并不懂这个文件是用作交换文件的，我们要告诉系统以 swap 的格式处理这个文件并启用它。
+
+在这之前，我们还要调整下文件的权限，让它不能被 root 以外的其它人读到。不这样做的话其它用户如果可以对文件进行读写会有很大安全风险。我们通过以下命令来锁定权限：
+
+```sh
+sudo chmod 600 /swapfile
+```
+
+来验证下文件权限是否被设置成功：
+
+```sh
+ls -lh /swapfile
+# -rw------- 1 root root 4.0G Apr 28 17:19 /swapfile
+```
+
+可以看到只有 root 的那一列立了读和写的 flag。
+
+现在文件安全了，我们就可以让系统设置交换空间了：
+
+```sh
+sudo mkswap /swapfile
+# Setting up swapspace version 1, size = 4194300 KiB
+# no label, UUID=e2f1e9cf-c0a9-4ed4-b8ab-714b8a7d6944
+```
+
+我们的文件已经为交换空间做好准备了，可以启用它了：
+
+```sh
+sudo swapon /swapfile
+```
+
+现在来检查下系统的交换空间看看刚刚的步骤是否执行成功了：
+
+```sh
+sudo swapon -s
+# Filename                Type        Size    Used    Priority
+# /swapfile               file        4194300 0       -1
+```
+
+系统已经有了交换空间了，我们再用 `free` 工具检查一遍：
+
+```sh
+free -m
+#              total       used       free     shared    buffers     cached
+# Mem:          3953        101       3851          0          5         30
+# -/+ buffers/cache:         66       3887
+# Swap:         4095          0       4095
+```
+
+我们的交换空间成功配置了，系统会在需要的时候去使用它！
+
+### 让交换文件一直启用
+
+虽然现在已经启用了交换空间，不过重启之后机器并不会自动启用，因此我们要修改下 `fstab` 文件。
+
+```sh
+sudo nano /etc/fstab
+```
+
+在文件的后面加上一行让系统自动启用你创建的交换文件：
+
+```sh
+/swapfile   none    swap    sw    0   0
+```
+
+### 设置交换空间
+
+
 
 
 (未完)
