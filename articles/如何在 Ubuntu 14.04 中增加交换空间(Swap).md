@@ -195,7 +195,77 @@ sudo nano /etc/fstab
 
 ### 设置交换空间
 
+你可以设置几个的交换空间的参数来控制系统的性能。
+
+swappiness 参数决定了系统把内存的数据交换出来到交换空间中的频率，它的值是个百分比，范围从 0 到 100。
+
+当值越接近 0，系统越不会在没必要时把内存数据交换进磁盘。记住，内存与交换空间进行数据交换的花费比内存间昂贵多了，过多的交换频率会让性能明显降低，所以不让系统过多的依赖交换空间可以使系统更快。
+
+当值越接近 100，系统会把更多的数据放到交换空间中，给内存腾出更多的空闲空间。根据你的应用的内存配置或者你机器上服务的类型，在一些情况下值调大点可能会更好。
+
+我们可以看看当前的 swappiness 值：
+
+```sh
+cat /proc/sys/vm/swappiness
+# 60
+```
+
+如果在桌面系统中，把 swappiness 设置为 60 是不错的，不过在 VPS 服务器上，我们最好把它设置为尽量接近 0。
+
+我们可以用 `sysctl` 命令设置 swappiness。
+
+例如，把 swappiness 设置为 10：
+
+```sh
+sudo sysctl vm.swappiness=10
+# vm.swappiness = 10
+```
+
+这个设置的效果会持续到下次重启，我们可以让电脑每次开机自动设置这个值，打开 /etc/sysctl.conf 文件：
+
+```sh
+sudo nano /etc/sysctl.conf
+```
+
+然后在最下面加一行：
+
+```
+vm.swappiness=10
+```
+
+你可能会修改的另外一个参数是 vfs_cache_pressure，决定了系统回收缓存 inode 和目录文件项(dentry)的倾向。
+
+文件系统访问数据是很昂贵而且频繁的，所以缓存是件好事件。你可以看看当前的 vfs_cache_pressure 值：
+
+```sh
+cat /proc/sys/vm/vfs_cache_pressure
+# 100
+```
+
+根据返回的配置值，当前系统回收缓存里的 inode 频率太快了，所以我们把它设置得保守点，设置成 50:
+
+```sh
+sudo sysctl vm.vfs_cache_pressure=50
+# vm.vfs_cache_pressure = 50
+```
+
+同样，这个设置的效果只会持续到下次重启，跟 swappiness 参数一样，我们也配置下 /etc/sysctl.conf 文件。
+
+```sh
+sudo nano /etc/sysctl.conf
+```
+
+然后在最下面加一行：
+
+```
+vm.vfs_cache_pressure = 50
+```
+
+### 总结
+
+跟着这篇指南做完后，你的内存使用时就会有一些喘息的空间。交换空间在避免一些常见问题时非常有用。
+
+如果你遇到了 OOM(out of memory) 错误，或者你发现系统不能打开想打开的应用，最好的解决方法是优化你的应用程序，或者升级你的机器。不过，通过配置交换空间，你可以更灵活的解决这些问题，而且还能省下些时间与金钱。
 
 
-
-(未完)
+(已完)
