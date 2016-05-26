@@ -9,6 +9,7 @@
 ---
 
 1. [如何在 VPS 上写简单的 Shell 脚本(1)](../articles/如何在 VPS 上写简单的 Shell 脚本\(1\).md)（翻译完）
-2. [如何在 VPS 上写简单的 Shell 脚本(2)](../articles/如何在 VPS 上写简单的 Shell 脚本\(2\).md)（未完）
-3. [如何在 VPS 上写简单的 Shell 脚本(3)](../articles/如何在 VPS 上写简单的 Shell 脚本\(3\).md)（未完）
+2. [如何在 VPS 上写简单的 Shell 脚本(2)](../articles/如何在 VPS 上写简单的 Shell 脚本\(2\).md)（翻译完）
+3. [如何在 VPS 上写简单的 Shell 脚本(3)](../articles/如何在 VPS 上写简单的 Shell 脚本\(3\).md)（翻译完）
 
+(已完)
