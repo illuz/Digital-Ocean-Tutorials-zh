@@ -37,5 +37,181 @@ HTTP/2 能够解决这个问题，它带来了根本性的变化：
 
 虽然 HTTP/2 不强制要求加密，Google Chrome 和 Mozilla Firefox 这个最大的浏览器的开发者却指出，为了安全起见，他们将只支持开启了 HTTPS 连接的 HTTP/2 页面。因此，如果你决定要用 HTTP/2，还必须使用 HTTPS 来加密传输。
 
+### 第一步 - 安装最新版的 Nginx
 
+在 Nginx 1.9.5 之后的版本中才支持 HTTP/2 协议，幸运的是 Ubuntu 16.04 自带的软件源里的 Nginx 版本已经比它高了，所以我们不用再去添加软件源。
+
+首先我们更新下 apt 的软件包：
+
+```sh
+sudo apt-get update
+```
+
+然后安装 Nginx：
+
+```sh
+sudo apt-get install nginx
+```
+
+安装完后先检查一下 Nginx 的版本：
+
+```sh
+sudo nginx -v
+```
+
+输出应该是类似下面这样：
+
+```
+nginx version: nginx/1.10.0 (Ubuntu)
+```
+
+下面几步我们会修改 Nginx 的配置文件里的配置项，每一步配置后我们都会检查一下语法。最后我们会验证 Nginx 能否支持 HTTP/2，并做些性能优化。
+
+### 第二步 - 修改监听端口并开启 HTTP/2
+
+首先把监听端口从 80 改到 443。
+
+打开配置文件：
+
+```sh
+sudo nano /etc/nginx/sites-available/default
+```
+
+默认情况下，Nginx 是监听 80 端口的，这是标准 HTTP 的端口：
+
+```
+listen 80 default_server;
+listen [::]:80 default_server;
+```
+
+如你所见，这里有两个 `listen` 变量，第一个是 IPv4 连接用的，第二个是 IPv6 连接用的。我们两边都要加密。
+
+把监听端口改成 `443`，这是 HTTPS 用的端口：
+
+```
+listen 443 ssl http2 default_server;
+listen [::]:443 ssl http2 default_server;
+```
+
+注意我们加了 `ssl` 和 `http2`，这个变量会告诉 Nginx 为支持的浏览器提供 HTTP/2 服务。
+
+### 第三步 - 改 server_name 配置
+
+在 `listen` 后面的那行 `server_name`，表示这个配置文件所对应的服务器。`server_name` 默认是下划线 `_`，表示这个配置文件对所有请求都生效。把它改成你自己的域名，就像这样：
+
+```
+server_name example.com;
+```
+
+保存退出后，检查下有没有语法错误：
+
+```sh
+sudo nginx -t
+```
+
+如果方法没有错误，会看到类似这样的信息：
+
+```
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+```
+
+### 第四步 - 增加 SSL 证书
+
+接下来，你要为你的 Nginx 配置 SSL 证书，如果你不知道 SSL 证书或者并没有 SSL 证书，请阅读「环境及条件」部分里面提到的教程。
+
+在 Nginx 配置目录里创建一个文件夹用来保存你的 SSL 证书。
+
+```sh
+sudo mkdir /etc/nginx/ssl
+```
+
+把你的证书和私钥复制到这个目录里，然后把这些文件以域名命名。（这能让以后管理起来更方便，因为你以后可能会拥有多个域名。）把 `example.com` 改成你自己的域名：
+
+```
+sudo cp /path/to/your/certificate.crt /etc/nginx/ssl/example.com.crt
+sudo cp /path/to/your/private.key /etc/nginx/ssl/example.com.key
+```
+
+现在再次打开你的配置文件：
+
+```sh
+sudo nano /etc/nginx/sites-available/default
+```
+
+在 `server` 部分里加入几行，用来定义你的证书的位置：
+
+```
+ssl_certificate /etc/nginx/ssl/example.com.crt;
+ssl_certificate_key /etc/nginx/ssl/example.com.key;
+```
+
+保存退出编辑器。
+
+### 第五步 - 避免过时的不安全的加密套件组合
+
+HTTP/2 有个[庞大的黑名单](https://http2.github.io/http2-spec/#BadCipherSuites)，里面列了很多过时的不安全的加密套件组合，我们应该尽量避免用到它们。加密套件组合(Cipher suits)是由几个加密算法组成的，用来描述传输的数据是怎么被加密的。
+
+这里我们将使用一个比较流行的加密套件组合，它的安全性已经被类似 CloudFlare 这样的互联网大公司承认了。不要使用 MD5（因为它已经从 1995 年来就被认定为不安全了，不过即使这样还是有很多地方在使用它）。
+
+打开下面这个配置文件：
+
+```sh
+sudo nano /etc/nginx/nginx.conf
+```
+
+在 `ssl_prefer_server_ciphers on;` 后面加上一行：
+
+```
+ssl_ciphers EECDH+CHACHA20:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
+```
+
+再次检查一下配置文件的语法：
+
+```sh
+sudo nginx -t
+```
+
+### 第六步 - 提高私钥交换的安全性
+
+建立一个安全连接的第一步是服务端和客户端之前的私钥交换，如果这一步出现问题，这个连接将变得不安全，也就是说这里面的数据交换对会被第三方看到。因此我们使用 Diffie–Hellman–Merkle 算法，它的实现很复杂，不是三言两语能说清楚的，如果你有兴趣，可以看[这个 Youtube 视频](https://www.youtube.com/watch?v=M-0qt6tdHzk)。
+
+Nginx 默认用一个 1028-bit DHE(Ephemeral Diffie-Hellman) 密钥，相对比较容易被解密。为了提供最高程度的安全性，我们要建立更安全的 DHE key。
+
+首先，运行下面的命令：
+
+```sh
+sudo openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048
+```
+
+**（记住我们要把 DH 参数生成到 SSL 证书同目录下，这里我们的证书在 `/etc/nginx/ssl/`，因此是 `-out /etc/nginx/ssl/dhparam.pem`。这是因为 Nginx 会先检查用户提供的证书的目录是否存在，在的话就用那个目录。）**
+
+在命令最后的那个变量（这里是 2048）表示私钥的长度，2048 长度的私钥已经足够安全了，[Mozilla 基金会也建议用 2048](https://wiki.mozilla.org/Security/Server_Side_TLS#Pre-defined_DHE_groups)，不过如果你想要更加安全可以把它改到 `4096`。
+
+生成过程大概会花 5 分钟。
+
+生成完成后，打开 Nginx 的配置文件：
+
+```sh
+sudo nano /etc/nginx/sites-available/default
+```
+
+在 `server` 部分增加一行，定义你的 DHE key 的目录：
+
+```
+ssl_dhparam  /etc/nginx/ssl/dhparam.pem;
+```
+
+### 第七步 - 把所有 HTTP 请求重定向到 HTTPS
+
+### 第八步 - 更新加载 Nginx
+
+### 第九步 - 验证
+
+### 第十步 - 优化 Nginx 性能
+
+### 总结
+
+
+(未完)
 
