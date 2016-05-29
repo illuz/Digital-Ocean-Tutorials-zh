@@ -139,7 +139,7 @@ sudo cp /path/to/your/private.key /etc/nginx/ssl/example.com.key
 sudo nano /etc/nginx/sites-available/default
 ```
 
-在 `server` 部分里加入几行，用来定义你的证书的位置：
+在 `server` 块里加入几行，用来定义你的证书的位置：
 
 ```
 ssl_certificate /etc/nginx/ssl/example.com.crt;
@@ -196,7 +196,7 @@ sudo openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048
 sudo nano /etc/nginx/sites-available/default
 ```
 
-在 `server` 部分增加一行，定义你的 DHE key 的目录：
+在 `server` 块增加一行，定义你的 DHE key 的目录：
 
 ```
 ssl_dhparam  /etc/nginx/ssl/dhparam.pem;
@@ -204,14 +204,147 @@ ssl_dhparam  /etc/nginx/ssl/dhparam.pem;
 
 ### 第七步 - 把所有 HTTP 请求重定向到 HTTPS
 
+由于我们感兴趣的是只通过 HTTPS 的服务，所以我们应该告诉 Nginx 如果服务器收到一个HTTP请求它应该怎么做。
+
+在配置文件的最后面新增一个 `server` 块，将所有的 HTTP 请求重定向到 HTTPS（记得把 server name 改成你的域名）：
+
+```
+# /etc/nginx/sites-available/default
+server {
+       listen         80;
+       listen    [::]:80;
+       server_name    example.com;
+       return         301 https://$server_name$request_uri;
+}
+```
+
+再次检查一下配置文件的语法：
+
+```sh
+sudo nginx -t
+```
+
 ### 第八步 - 更新加载 Nginx
+
+这一步是为了让修改的 Nginx 配置生效。我们已经在每一步修改后都有进行语法错误检查，已经为重启 Nginx 并测试更改做好了准备。
+
+总之，忽略注释和空行，你的配置文件现在应该跟这差不多：
+
+```
+# /etc/nginx/sites-available/default
+server {
+        listen 443 ssl http2 default_server;
+        listen [::]:443 ssl http2 default_server;
+
+        root /var/www/html;
+
+        index index.html index.htm index.nginx-debian.html;
+
+        server_name example.com;
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+
+        ssl_certificate /etc/nginx/ssl/example.com.crt;
+        ssl_certificate_key /etc/nginx/ssl/example.com.key;
+        ssl_dhparam /etc/nginx/ssl/dhparam.pem;
+}
+
+
+server {
+       listen         80;
+       listen    [::]:80;
+       server_name    example.com;
+       return         301 https://$server_name$request_uri;
+}
+```
+
+重启 Nginx 让这些改动生效：
+
+```sh
+sudo systemctl restart nginx
+```
 
 ### 第九步 - 验证
 
+让我们检查下服务器是否正常运作。用浏览器打开你的网站：
+
+```
+example.com
+```
+
+如果一切都配置正确，你应该自动重定向到 HTTPS。现在检查一下 HTTP/2 是否正常工作：打开 Chrome 浏览器的开发者工具（View->Developer->Developer Tools）并刷新页面，选择里面的 Network tab，在 Name 那一列右击，选中 Protocol 选项。
+
+现在你就能看到 `h2`（代表 HTTP/2）在新增的那一列里：
+
+![](https://assets.digitalocean.com/articles/nginx_http2/http2_check.png)
+
+这说明我们的服务器已经可以用 HTTP/2 协议提供服务了，不过为了在生产环境中使用还有一些东西要准备下。
+
 ### 第十步 - 优化 Nginx 性能
+
+这一步我们会修改 Nginx 的配置文件，让 Nginx 提高性能与安全性。
+
+首先打开 `nginx.conf` 文件：
+
+```sh
+sudo nano /etc/nginx/nginx.conf
+```
+
+#### 启用连接证书缓存
+
+相比 HTTP，HTTPS 花费相对较长的时间来建立服务器和用户之间的初始连接。为了尽量减少这种差异对页面加载速度的影响，我们将启用连接证书缓存。这意味着，服务器将使用的证书的缓存版本而不是在每个页面上创建一个新的会话（session）。
+
+在 `nginx.conf` 文件里的 `http` 块后面增加几行，来打开 session 缓存：
+
+```
+# /etc/nginx/nginx.conf
+ssl_session_cache shared:SSL:5m;
+ssl_session_timeout 1h;
+```
+
+`ssl_session_cache` 表示 session 会缓存的大小，1 MB 大概可以存 4000 个会话，默认的 5M 对大部分用户来说已经足够了，不过如果你有更大的流量，你可以自行修改这个修。
+
+`ssl_session_timeout` 表示一个 session 在缓存中的时间，这个值不宜过大（超过一小时），不过如果太低了它的作用也就降低了。
+
+#### 启用 HTTP 严格传输安全（HSTS, HTTP Strict Transport Security）
+
+即使在 Nginx 配置文件里已经把所有常规的 HTTP 请求重定向到 HTTPS，我们也要启用 HSTS 来避免不安全的重定向。
+
+如果浏览器发现一个 HSTS header，它在设定的时间内不会再尝试通过常规的 HTTP 重新连接到服务器，不管怎样，它都会用加过密的 HTTPS 连接的来交换数据。这个 header 也会保护我们免受协议降级的攻击。
+
+在 `nginx.conf` 中增加一行：
+
+```
+# /etc/nginx/nginx.conf
+add_header Strict-Transport-Security "max-age=15768000" always;
+```
+
+`max-age` 的单位是秒，15768000 秒就是 6 个月。
+
+这个 header 默认不会加到子域名的请求中，所以如果你有子域也想用上 HSTS，你可以在最后一行增加 `includeSubDomains` 变量，就像这样：
+
+```
+# /etc/nginx/nginx.conf
+add_header Strict-Transport-Security "max-age=15768000; includeSubDomains: always;";
+```
+
+最后还是检查下语法错误：
+
+```sh
+sudo nginx -t
+```
+
+最后重启 Nginx 让改动生效：
+
+```sh
+sudo systemctl restart nginx
+```
 
 ### 总结
 
+现在你的服务器已经是 HTTP/2 的了，如果你想测试 SSL 连接的强度，可以访问 [Qualys SSL Lab](https://www.ssllabs.com/ssltest/) 并测试下你的服务器。如果一切配置得当，你应该可以拿到 A+ 的安全评分。
 
-(未完)
+(已完)
 
