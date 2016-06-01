@@ -33,9 +33,15 @@ Nginx 自发布以来不断壮大，得益于其轻量级的资源利用和其�
 
 ### 连接处理架构
 
-Apache 和 Nginx 之间最大的区别是它们处理连接和传输的方式。
+Apache 和 Nginx 之间最大的区别是它们处理连接和传输的方式。[Cannot translate: This provides perhaps the most significant difference in the way that they respond to different traffic conditions]
 
 #### Apache
+
+Apache 提供了多样化的多进程模块（称为 MPMs，multi-processing modules），这些模块描述了客户端的请求如何被处理。通常它允许管理员随意改变连接处理架构。有这几个模块：
+
+- **mpm_prefork**：这个进程模块可以产生单线程的进程来分别处理请求，每个子进程一次只能处理一个连接。当请求的数量比进程数少时，这个 MPM 是非常快的，不过当请求数多起来后性能就会大打折扣，因此它在多很情景下不是个好选择。因为每个进程对内存消耗的影响很大，所以它也很难高效的进行扩展。不过当其它的组件没有考虑线程时，它可能是个很好的选择。例如，PHP 并不是线程安全的，这个 MPM 就可以配合 `mod_php` 来让 PHP 安全的工作。
+- **mpm_worker**：这个模块产生的是多线程的进程，每个线程处理一个连接。线程比进程高效多了，这意味着这个 MPM 在扩展性方面比 `mpm_prefork` 好多了。因为线程比进程多多了，所以新的连接可以很快的获取到一个空闲的线程而不用等待进程。
+- **mpm_event**：这个模块在很多方面都跟 `mpm_worker` 很像，不过它对处理长连接(keep-alive connections)进行了优化。当用这个
 
 #### Nginx
 
